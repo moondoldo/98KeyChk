@@ -41,17 +41,16 @@ $ShiftJis = [System.Text.Encoding]::GetEncoding(
     [System.Text.DecoderFallback]::ExceptionFallback
 )
 
-$SourcePrefix = $SourceRoot + [System.IO.Path]::DirectorySeparatorChar
 $ConvertedFiles = @()
 $SourceFiles = @(
-    Get-ChildItem -LiteralPath $SourceRoot -Recurse -File |
+    Get-ChildItem -LiteralPath $SourceRoot -File |
         Where-Object {
             $_.Extension -ieq ".c" -or $_.Extension -ieq ".h"
         }
 )
 
 foreach ($SourceFile in $SourceFiles) {
-    $RelativePath = $SourceFile.FullName.Substring($SourcePrefix.Length)
+    $FileName = $SourceFile.Name
 
     try {
         $Text = [System.IO.File]::ReadAllText($SourceFile.FullName, $Utf8)
@@ -59,11 +58,11 @@ foreach ($SourceFile in $SourceFiles) {
         $Bytes = $ShiftJis.GetBytes($Text)
     }
     catch {
-        throw "Failed to convert $RelativePath`: $($_.Exception.Message)"
+        throw "Failed to convert $FileName`: $($_.Exception.Message)"
     }
 
     $ConvertedFiles += New-Object PSObject -Property @{
-        RelativePath = $RelativePath
+        FileName = $FileName
         Bytes = $Bytes
     }
 }
@@ -71,19 +70,13 @@ foreach ($SourceFile in $SourceFiles) {
 foreach ($ConvertedFile in $ConvertedFiles) {
     $DestinationFile = Join-Path (
         $DestinationRoot
-    ) $ConvertedFile.RelativePath
-    $DestinationParent = Split-Path -Parent $DestinationFile
-
-    if (-not (Test-Path -LiteralPath $DestinationParent -PathType Container)) {
-        New-Item -ItemType Directory -Path $DestinationParent -Force |
-            Out-Null
-    }
+    ) $ConvertedFile.FileName
 
     [System.IO.File]::WriteAllBytes(
         $DestinationFile,
         $ConvertedFile.Bytes
     )
-    Write-Host "Converted: $($ConvertedFile.RelativePath)"
+    Write-Host "Converted: $($ConvertedFile.FileName)"
 }
 
 Write-Host "Completed: $($ConvertedFiles.Count) file(s)"
