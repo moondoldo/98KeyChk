@@ -84,6 +84,10 @@ static struct key_display key_displays[] = {
 static unsigned key_display_count =
     sizeof(key_displays) / sizeof(key_displays[0]);
 
+static unsigned char interrupt_return[] = {0xcf}; /* IRET */
+static void (far *old_copy_handler)();
+static void (far *old_stop_handler)();
+
 static void display_keyboard(int extended_keys)
 {
     puts("STOP COPY F1 F2 F3 F4 F5 F6 F7 F8 F9 F10  v1 v2 v3 v4 v5");
@@ -109,6 +113,28 @@ static void set_extended_key_mode(unsigned char mode)
         ;
     outp(0x41, mode);
     outp(0x43, 0x16);
+}
+
+static void hook_special_keys(void)
+{
+    struct SREGS segments;
+    void (far *handler)();
+
+    segread(&segments);
+    handler = (void (far *)())MK_FP(
+        segments.ds,
+        (unsigned)interrupt_return
+    );
+    old_copy_handler = _dos_getvect(0x05);
+    old_stop_handler = _dos_getvect(0x06);
+    _dos_setvect(0x05, handler);
+    _dos_setvect(0x06, handler);
+}
+
+static void restore_special_keys(void)
+{
+    _dos_setvect(0x05, old_copy_handler);
+    _dos_setvect(0x06, old_stop_handler);
 }
 
 static void read_key_states(unsigned char states[])
@@ -168,8 +194,14 @@ static void clear_key_display(void)
 
 static void clear_keyboard_buffer(void)
 {
-    while (kbhit())
-        getch();
+    union REGS in_regs;
+    union REGS out_regs;
+
+    memset(&in_regs, 0, sizeof(in_regs));
+    in_regs.h.ah = 0x0c;
+    in_regs.h.al = 0x06;
+    in_regs.h.dl = 0xff;
+    intdos(&in_regs, &out_regs);
 }
 
 int main(int argc, char *argv[])
@@ -185,6 +217,7 @@ int main(int argc, char *argv[])
     display_keyboard(extended_keys);
     if (extended_keys)
         set_extended_key_mode(0x03);
+    hook_special_keys();
 
     for (;;) {
         read_key_states(states);
@@ -198,5 +231,6 @@ int main(int argc, char *argv[])
     if (extended_keys)
         set_extended_key_mode(0x00);
     clear_keyboard_buffer();
+    restore_special_keys();
     return 0;
 }
