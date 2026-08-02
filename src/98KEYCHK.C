@@ -15,6 +15,7 @@ struct key_display {
     unsigned char width;
 };
 
+/* {キーコード, 表示行(0始まり), 表示開始桁(0始まり), 反転表示する桁数} */
 static struct key_display key_displays[] = {
     {0x60, 0,  0, 4}, /* STOP */
     {0x61, 0,  5, 4}, /* COPY */
