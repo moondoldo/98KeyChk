@@ -100,7 +100,13 @@ static void display_keyboard(int extended_keys)
     else
         puts("  KANA     GRPH NFER SPACE XFER         DOWN     0 , . R");
     puts("");
-    puts("[\x8f\x49\x97\xb9:CTRL+C]");
+    if (extended_keys)
+        puts("WIN/APP Mode [\x8f\x49\x97\xb9:CTRL+C]");
+    else
+        puts("Normal Mode (WIN/APP Mode "
+            "\x82\xcd /W "
+            "\x95\x74\x82\xab\x8b\x4e\x93\xae) "
+            "[\x8f\x49\x97\xb9:CTRL+C]");
 }
 
 static void set_extended_key_mode(unsigned char mode)
