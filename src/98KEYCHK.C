@@ -68,7 +68,7 @@ static struct key_display key_displays[] = {
     {0x2f, 4, 22, 1}, {0x30, 4, 24, 1},
     {0x31, 4, 26, 1}, {0x32, 4, 28, 1},
     {0x33, 4, 30, 1}, {0x7d, 4, 32, 5},
-    {0x3b, 4, 38, 4}, {0x3c, 4, 43, 5},
+    {0x3b, 4, 39, 2}, {0x3c, 4, 43, 2},
     {0x4a, 4, 49, 1}, {0x4b, 4, 51, 1},
     {0x4c, 4, 53, 1}, {0x4d, 4, 55, 1},
 
@@ -76,7 +76,7 @@ static struct key_display key_displays[] = {
     {0x73, 5, 11, 4}, {0x51, 5, 16, 4},
     {0x34, 5, 21, 5}, {0x35, 5, 27, 4},
     {0x78, 5, 32, 3}, {0x79, 5, 36, 3},
-    {0x3d, 5, 40, 4},
+    {0x3d, 5, 41, 2},
     {0x4e, 5, 49, 1}, {0x4f, 5, 51, 1},
     {0x50, 5, 53, 1}, {0x1c, 5, 55, 1}
 };
@@ -93,20 +93,17 @@ static void display_keyboard(int extended_keys)
     puts("STOP COPY F1 F2 F3 F4 F5 F6 F7 F8 F9 F10  v1 v2 v3 v4 v5");
     puts(" ESC   1 2 3 4 5 6 7 8 9 0 - ^ \\ BS INS DEL      C H - /");
     puts(" TAB    Q W E R T Y U I O P @ [  RET  RUP RDOWN  7 8 9 *");
-    puts("CTRL CAP A S D F G H J K L ; : ]         UP      4 5 6 +");
-    puts(" SHIFT    Z X C V B N M , . / _ SHIFT LEFT RIGHT 1 2 3 =");
+    puts("CTRL CAP A S D F G H J K L ; : ]         ↑      4 5 6 +");
+    puts(" SHIFT    Z X C V B N M , . / _ SHIFT  ←  →    1 2 3 =");
     if (extended_keys)
-        puts("  KANA WIN GRPH NFER SPACE XFER WIN APP DOWN     0 , . R");
+        puts("  KANA WIN GRPH NFER SPACE XFER WIN APP  ↓      0 , . R");
     else
-        puts("  KANA     GRPH NFER SPACE XFER         DOWN     0 , . R");
+        puts("  KANA     GRPH NFER SPACE XFER          ↓      0 , . R");
     puts("");
     if (extended_keys)
-        puts("WIN/APP Mode [\x8f\x49\x97\xb9:CTRL+C]");
+        puts("WIN/APP Mode [終了:CTRL+C]");
     else
-        puts("Normal Mode (WIN/APP Mode "
-            "\x82\xcd /W "
-            "\x95\x74\x82\xab\x8b\x4e\x93\xae) "
-            "[\x8f\x49\x97\xb9:CTRL+C]");
+        puts("Normal Mode (WIN/APP Mode は /W 付き起動) [終了:CTRL+C]");
 }
 
 static void set_extended_key_mode(unsigned char mode)
