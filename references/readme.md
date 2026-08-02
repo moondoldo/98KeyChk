@@ -20,3 +20,12 @@ NP21W_SRC
 
 Neko Project 21/W のソース
 後でCodexに読ませるかも？
+
+## PC9800_TDB
+PC9800_TDB
+
+PC-9800シリーズ テクニカルデータブック BIOS編
+PC-9800シリーズ テクニカルデータブック HARDWARE編
+PC-9800シリーズ テクニカルデータブック MULTIMEDIA編
+のPDF
+
