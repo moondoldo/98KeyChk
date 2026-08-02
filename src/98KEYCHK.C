@@ -84,19 +84,22 @@ static struct key_display key_displays[] = {
 static unsigned key_display_count =
     sizeof(key_displays) / sizeof(key_displays[0]);
 
-static void display_keyboard(void)
+static void display_keyboard(int extended_keys)
 {
     puts("STOP COPY F1 F2 F3 F4 F5 F6 F7 F8 F9 F10  v1 v2 v3 v4 v5");
     puts(" ESC   1 2 3 4 5 6 7 8 9 0 - ^ \\ BS INS DEL      C H - /");
     puts(" TAB    Q W E R T Y U I O P @ [  RET  RUP RDOWN  7 8 9 *");
     puts("CTRL CAP A S D F G H J K L ; : ]         UP      4 5 6 +");
     puts(" SHIFT    Z X C V B N M , . / _ SHIFT LEFT RIGHT 1 2 3 =");
-    puts("  KANA WIN GRPH NFER SPACE XFER WIN APP DOWN     0 , . R");
+    if (extended_keys)
+        puts("  KANA WIN GRPH NFER SPACE XFER WIN APP DOWN     0 , . R");
+    else
+        puts("  KANA     GRPH NFER SPACE XFER         DOWN     0 , . R");
     puts("");
     puts("[\x8f\x49\x97\xb9:CTRL+C]");
 }
 
-static void enable_extended_keys(void)
+static void set_extended_key_mode(unsigned char mode)
 {
     outp(0x43, 0x17);
     while ((inp(0x43) & 0x01) == 0)
@@ -104,7 +107,7 @@ static void enable_extended_keys(void)
     outp(0x41, 0x95);
     while ((inp(0x43) & 0x01) == 0)
         ;
-    outp(0x41, 0x03);
+    outp(0x41, mode);
     outp(0x43, 0x16);
 }
 
@@ -163,13 +166,25 @@ static void clear_key_display(void)
         set_key_reverse(&key_displays[index], 0);
 }
 
-int main(void)
+static void clear_keyboard_buffer(void)
+{
+    while (kbhit())
+        getch();
+}
+
+int main(int argc, char *argv[])
 {
     unsigned char states[KEY_STATE_GROUPS];
+    int extended_keys;
+
+    extended_keys = argc > 1
+        && (strcmp(argv[1], "/W") == 0
+            || strcmp(argv[1], "/w") == 0);
 
     system("CLS");
-    display_keyboard();
-    enable_extended_keys();
+    display_keyboard(extended_keys);
+    if (extended_keys)
+        set_extended_key_mode(0x03);
 
     for (;;) {
         read_key_states(states);
@@ -180,5 +195,8 @@ int main(void)
     }
 
     clear_key_display();
+    if (extended_keys)
+        set_extended_key_mode(0x00);
+    clear_keyboard_buffer();
     return 0;
 }
