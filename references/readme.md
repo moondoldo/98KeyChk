@@ -1,6 +1,10 @@
 # このフォルダー(references)について
 references
 
+Codexに知見を与えるためのファイルです
+
+だいたい再配布できないファイルなので、基本Gitには共有されていません
+
 ## LSIC86
 LSIC86
 
@@ -20,7 +24,6 @@ https://radioc.web.fc2.com/soflib/keyinp/keyinp.htm
 NP21W_SRC
 
 Neko Project 21/W のソース
-後でCodexに読ませるかも？
 
 ## PC9800_TDB
 PC9800_TDB
