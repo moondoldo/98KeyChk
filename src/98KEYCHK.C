@@ -173,7 +173,8 @@ static int wait_keyboard_status(unsigned char mask)
     unsigned timeout;
 
     timeout = 65535U;
-    while (timeout != 0) {
+    while (timeout != 0)
+    {
         if ((inp(0x43) & mask) != 0)
         {
             return 1;
@@ -277,7 +278,8 @@ static void read_key_states(unsigned char states[])
     int group;
 
     memset(&in_regs, 0, sizeof(in_regs));
-    for (group = 0; group < KEY_STATE_GROUPS; group++) {
+    for (group = 0; group < KEY_STATE_GROUPS; group++)
+    {
         in_regs.h.ah = 0x04;
         in_regs.h.al = (unsigned char)group;
         int86(0x18, &in_regs, &out_regs);
@@ -297,7 +299,8 @@ static void set_key_reverse(struct key_display *key, int reverse)
     int column;
 
     attribute_vram = (unsigned char far *)MK_FP(0xa200, 0);
-    for (column = 0; column < key->width; column++) {
+    for (column = 0; column < key->width; column++)
+    {
         offset = key->row * TEXT_ROW_BYTES
             + (key->column + column) * 2;
         if (reverse)
@@ -315,7 +318,8 @@ static void update_key_display(unsigned char states[])
 {
     unsigned index;
 
-    for (index = 0; index < key_display_count; index++) {
+    for (index = 0; index < key_display_count; index++)
+    {
         set_key_reverse(&key_displays[index],
             is_key_pressed(states, key_displays[index].code));
     }
@@ -326,7 +330,9 @@ static void clear_key_display(void)
     unsigned index;
 
     for (index = 0; index < key_display_count; index++)
+    {
         set_key_reverse(&key_displays[index], 0);
+    }
 }
 
 static void clear_keyboard_buffer(void)
@@ -359,7 +365,8 @@ int main(int argc, char *argv[])
     disable_keyboard_buffer_beep();
     hook_special_keys();
 
-    for (;;) {
+    for (;;)
+    {
         read_key_states(states);
         update_key_display(states);
         if (is_key_pressed(states, 0x74)
