@@ -158,16 +158,47 @@ static void display_keyboard(int extended_keys)
         puts("Normal Mode (WIN/APP Mode は /W 付き起動) [終了:CTRL+C]");
 }
 
+static int wait_keyboard_status(unsigned char mask)
+{
+    unsigned timeout;
+
+    timeout = 65535U;
+    while (timeout != 0) {
+        if ((inp(0x43) & mask) != 0)
+            return 1;
+        timeout--;
+    }
+    return 0;
+}
+
+static int send_keyboard_byte(unsigned char value)
+{
+    if (!wait_keyboard_status(0x01))
+        return 0;
+
+    outp(0x41, value);
+
+    if (!wait_keyboard_status(0x02))
+        return 0;
+
+    return inp(0x41) == 0xfa;
+}
+
 static void set_extended_key_mode(unsigned char mode)
 {
+    _asm_c("\n\tPUSHF\n\tCLI");
+
     outp(0x43, 0x17);
-    while ((inp(0x43) & 0x01) == 0)
-        ;
-    outp(0x41, 0x95);
-    while ((inp(0x43) & 0x01) == 0)
-        ;
-    outp(0x41, mode);
+    if (!send_keyboard_byte(0x95))
+        goto finish;
+    if (!send_keyboard_byte(mode))
+        goto finish;
+    if (!wait_keyboard_status(0x04))
+        goto finish;
+
+finish:
     outp(0x43, 0x16);
+    _asm_c("\n\tPOPF");
 }
 
 static void hook_special_keys(void)
