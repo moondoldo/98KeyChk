@@ -7,6 +7,7 @@
 #define KEY_STATE_GROUPS 16
 #define TEXT_ROW_BYTES 160
 #define REVERSE_ATTRIBUTE 0x04
+#define KEYBOARD_BUFFER_BEEP_DISABLE 0x20
 
 struct key_display {
     unsigned char code;
@@ -139,6 +140,7 @@ static unsigned key_display_count =
 static unsigned char interrupt_return[] = {0xcf}; /* IRET */
 static void (far *old_copy_handler)();
 static void (far *old_stop_handler)();
+static unsigned char old_keyboard_buffer_beep_state;
 
 static void display_keyboard(int extended_keys)
 {
@@ -223,6 +225,27 @@ static void restore_special_keys(void)
     _dos_setvect(0x06, old_stop_handler);
 }
 
+static void disable_keyboard_buffer_beep(void)
+{
+    unsigned char far *bios_flag;
+
+    bios_flag = (unsigned char far *)MK_FP(0x0000, 0x0500);
+    old_keyboard_buffer_beep_state =
+        *bios_flag & KEYBOARD_BUFFER_BEEP_DISABLE;
+    *bios_flag |= KEYBOARD_BUFFER_BEEP_DISABLE;
+}
+
+static void restore_keyboard_buffer_beep(void)
+{
+    unsigned char far *bios_flag;
+
+    bios_flag = (unsigned char far *)MK_FP(0x0000, 0x0500);
+    if (old_keyboard_buffer_beep_state)
+        *bios_flag |= KEYBOARD_BUFFER_BEEP_DISABLE;
+    else
+        *bios_flag &= ~KEYBOARD_BUFFER_BEEP_DISABLE;
+}
+
 static void read_key_states(unsigned char states[])
 {
     union REGS in_regs;
@@ -303,6 +326,7 @@ int main(int argc, char *argv[])
     display_keyboard(extended_keys);
     if (extended_keys)
         set_extended_key_mode(0x03);
+    disable_keyboard_buffer_beep();
     hook_special_keys();
 
     for (;;) {
@@ -318,5 +342,6 @@ int main(int argc, char *argv[])
         set_extended_key_mode(0x00);
     clear_keyboard_buffer();
     restore_special_keys();
+    restore_keyboard_buffer_beep();
     return 0;
 }
