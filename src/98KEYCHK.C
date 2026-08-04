@@ -150,14 +150,22 @@ static void display_keyboard(int extended_keys)
     puts("CTRL CAP A S D F G H J K L ; : ]         ↑      4 5 6 +");
     puts(" SHIFT    Z X C V B N M , . / _ SHIFT  ←  →    1 2 3 =");
     if (extended_keys)
+    {
         puts("  KANA WIN GRPH NFER SPACE XFER WIN APP  ↓      0 , . R");
+    }
     else
+    {
         puts("  KANA     GRPH NFER SPACE XFER          ↓      0 , . R");
+    }
     puts("");
     if (extended_keys)
+    {
         puts("WIN/APP Mode [終了:CTRL+C]");
+    }
     else
+    {
         puts("Normal Mode (WIN/APP Mode は /W 付き起動) [終了:CTRL+C]");
+    }
 }
 
 static int wait_keyboard_status(unsigned char mask)
@@ -167,7 +175,9 @@ static int wait_keyboard_status(unsigned char mask)
     timeout = 65535U;
     while (timeout != 0) {
         if ((inp(0x43) & mask) != 0)
+        {
             return 1;
+        }
         timeout--;
     }
     return 0;
@@ -176,12 +186,16 @@ static int wait_keyboard_status(unsigned char mask)
 static int send_keyboard_byte(unsigned char value)
 {
     if (!wait_keyboard_status(0x01))
+    {
         return 0;
+    }
 
     outp(0x41, value);
 
     if (!wait_keyboard_status(0x02))
+    {
         return 0;
+    }
 
     return inp(0x41) == 0xfa;
 }
@@ -192,11 +206,17 @@ static void set_extended_key_mode(unsigned char mode)
 
     outp(0x43, 0x17);
     if (!send_keyboard_byte(0x95))
+    {
         goto finish;
+    }
     if (!send_keyboard_byte(mode))
+    {
         goto finish;
+    }
     if (!wait_keyboard_status(0x04))
+    {
         goto finish;
+    }
 
 finish:
     outp(0x43, 0x16);
@@ -241,9 +261,13 @@ static void restore_keyboard_buffer_beep(void)
 
     bios_flag = (unsigned char far *)MK_FP(0x0000, 0x0500);
     if (old_keyboard_buffer_beep_state)
+    {
         *bios_flag |= KEYBOARD_BUFFER_BEEP_DISABLE;
+    }
     else
+    {
         *bios_flag &= ~KEYBOARD_BUFFER_BEEP_DISABLE;
+    }
 }
 
 static void read_key_states(unsigned char states[])
@@ -277,9 +301,13 @@ static void set_key_reverse(struct key_display *key, int reverse)
         offset = key->row * TEXT_ROW_BYTES
             + (key->column + column) * 2;
         if (reverse)
+        {
             attribute_vram[offset] |= REVERSE_ATTRIBUTE;
+        }
         else
+        {
             attribute_vram[offset] &= ~REVERSE_ATTRIBUTE;
+        }
     }
 }
 
@@ -325,7 +353,9 @@ int main(int argc, char *argv[])
     system("CLS");
     display_keyboard(extended_keys);
     if (extended_keys)
+    {
         set_extended_key_mode(0x03);
+    }
     disable_keyboard_buffer_beep();
     hook_special_keys();
 
@@ -334,12 +364,16 @@ int main(int argc, char *argv[])
         update_key_display(states);
         if (is_key_pressed(states, 0x74)
                 && is_key_pressed(states, 0x2b))
+        {
             break;
+        }
     }
 
     clear_key_display();
     if (extended_keys)
+    {
         set_extended_key_mode(0x00);
+    }
     clear_keyboard_buffer();
     restore_special_keys();
     restore_keyboard_buffer_beep();
