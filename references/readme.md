@@ -25,9 +25,10 @@ NP21W_SRC
 
 Neko Project 21/W のソース
 
-## PC9800_TDB
-PC9800_TDB
+## PC9800_BOOKS
+PC9800_BOOKS
 
+98を98％使う本 PC-9801 プログラマーズ Bible.pdf
 PC-9800シリーズ テクニカルデータブック BIOS編
 PC-9800シリーズ テクニカルデータブック HARDWARE編
 PC-9800シリーズ テクニカルデータブック MULTIMEDIA編
