@@ -301,6 +301,7 @@ static void restore_keyboard_buffer_beep(void)
     }
 }
 
+/* BIOSのキーセンスで、全キーグループの押下状態を取得する。 */
 static void read_key_states(unsigned char states[])
 {
     union REGS in_regs;
@@ -317,11 +318,13 @@ static void read_key_states(unsigned char states[])
     }
 }
 
+/* 取得済みのキー状態から、指定したキーが押されているか判定する。 */
 static int is_key_pressed(unsigned char states[], unsigned char code)
 {
     return (states[code >> 3] & (1 << (code & 7))) != 0;
 }
 
+/* 指定キーの表示範囲について、テキストVRAMの反転属性を設定・解除する。 */
 static void set_key_reverse(struct key_display *key, int reverse)
 {
     unsigned char far *attribute_vram;
@@ -344,6 +347,7 @@ static void set_key_reverse(struct key_display *key, int reverse)
     }
 }
 
+/* 取得したキー状態に合わせて、すべてのキー表示を更新する。 */
 static void update_key_display(unsigned char states[])
 {
     unsigned index;
@@ -355,6 +359,7 @@ static void update_key_display(unsigned char states[])
     }
 }
 
+/* すべてのキー表示から反転属性を解除する。 */
 static void clear_key_display(void)
 {
     unsigned index;
