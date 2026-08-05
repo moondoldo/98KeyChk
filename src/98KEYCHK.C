@@ -169,6 +169,10 @@ static void display_keyboard(int extended_keys)
     }
 }
 
+/*
+ * PC-98キーボードI/Oのステータス(43h)を待つ。
+ * キーボードから応答がない場合も停止し続けないよう、タイムアウトを設ける。
+ */
 static int wait_keyboard_status(unsigned char mask)
 {
     unsigned timeout;
@@ -185,8 +189,12 @@ static int wait_keyboard_status(unsigned char mask)
     return 0;
 }
 
+/*
+ * データポート(41h)へ1バイト送信し、キーボードからのACK(FAh)を確認する。
+ */
 static int send_keyboard_byte(unsigned char value)
 {
+    /* TxRDY: キーボードへ送信できるまで待つ。 */
     if (!wait_keyboard_status(0x01))
     {
         return 0;
@@ -194,6 +202,7 @@ static int send_keyboard_byte(unsigned char value)
 
     outp(0x41, value);
 
+    /* RxRDY: キーボードから応答を受信できるまで待つ。 */
     if (!wait_keyboard_status(0x02))
     {
         return 0;
@@ -202,10 +211,17 @@ static int send_keyboard_byte(unsigned char value)
     return inp(0x41) == 0xfa;
 }
 
+/*
+ * 95hコマンドで拡張キーの動作モードを設定する。
+ * modeの03hはWIN/APPキー有効、00hは通常状態を表す。
+ * ACKがIRQ1のBIOS処理に先取りされないよう、送受信中だけ割り込みを禁止する。
+ */
 static void set_extended_key_mode(unsigned char mode)
 {
+    /* 現在のフラグを保存し、割り込みを一時的に禁止する。 */
     _asm_c("\n\tPUSHF\n\tCLI");
 
+    /* キーボードインターフェースの送信を有効にする。 */
     outp(0x43, 0x17);
     if (!send_keyboard_byte(0x95))
     {
@@ -215,16 +231,23 @@ static void set_extended_key_mode(unsigned char mode)
     {
         goto finish;
     }
+    /* TxEMPTY: 最後のデータが送信し終わるまで待つ。 */
     if (!wait_keyboard_status(0x04))
     {
         goto finish;
     }
 
 finish:
+    /* 送信を無効にし、受信可能な通常状態へ戻してエラーをリセットする。 */
     outp(0x43, 0x16);
+    /* 保存したフラグを復元し、割り込み状態を処理前に戻す。 */
     _asm_c("\n\tPOPF");
 }
 
+/*
+ * STOPとCOPYは、それぞれINT 06hとINT 05hを発生させる。
+ * キー状態の監視中だけIRETする処理へ差し替え、通常の割り込み処理を抑止する。
+ */
 static void hook_special_keys(void)
 {
     struct SREGS segments;
@@ -241,12 +264,17 @@ static void hook_special_keys(void)
     _dos_setvect(0x06, handler);
 }
 
+/* STOP/COPYの割り込み処理を起動前の状態へ戻す。 */
 static void restore_special_keys(void)
 {
     _dos_setvect(0x05, old_copy_handler);
     _dos_setvect(0x06, old_stop_handler);
 }
 
+/*
+ * キーを押し続けた時にキーバッファーが溢れて鳴るBEEPを抑止する。
+ * BIOSフラグ(0000:0500h)のD5を変更する前に、元の状態を保存する。
+ */
 static void disable_keyboard_buffer_beep(void)
 {
     unsigned char far *bios_flag;
@@ -257,6 +285,7 @@ static void disable_keyboard_buffer_beep(void)
     *bios_flag |= KEYBOARD_BUFFER_BEEP_DISABLE;
 }
 
+/* 他のBIOSフラグには触れず、BEEP抑止のD5だけを元の状態へ戻す。 */
 static void restore_keyboard_buffer_beep(void)
 {
     unsigned char far *bios_flag;
@@ -341,6 +370,7 @@ static void clear_keyboard_buffer(void)
     union REGS in_regs;
     union REGS out_regs;
 
+    /* 監視中に蓄積したキー入力を、終了後のDOSへ渡さないよう消去する。 */
     memset(&in_regs, 0, sizeof(in_regs));
     in_regs.h.ah = 0x0c;
     in_regs.h.al = 0x06;
