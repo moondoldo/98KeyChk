@@ -417,6 +417,7 @@ int main(int argc, char *argv[])
     disable_keyboard_buffer_beep();
     hook_special_keys();
 
+    /* CTRL+Cが押されるまで、キー状態の取得と表示の更新を繰り返す。 */
     for (;;)
     {
         read_key_states(states);
@@ -428,11 +429,15 @@ int main(int argc, char *argv[])
         }
     }
 
+    /* 終了時に残っている、すべてのキーの反転表示を解除する。 */
     clear_key_display();
+
+    /* /W指定時はWIN/APPキーを無効にし、通常モードへ戻す。 */
     if (extended_keys)
     {
         set_extended_key_mode(0x00);
     }
+
     clear_keyboard_buffer();
     restore_special_keys();
     restore_keyboard_buffer_beep();
