@@ -383,16 +383,37 @@ int main(int argc, char *argv[])
     unsigned char states[KEY_STATE_GROUPS];
     int extended_keys;
 
-    extended_keys = argc > 1
-        && (strcmp(argv[1], "/W") == 0
-            || strcmp(argv[1], "/w") == 0);
+    /* 初期値は0(通常モード)。WIN/APPキーは使用しない。 */
+    extended_keys = 0;
+    if (argc > 1)
+    {
+        /* /Wまたは/wが指定された場合だけ1(WIN/APPモード)にする。 */
+        if (strcmp(argv[1], "/W") == 0
+                || strcmp(argv[1], "/w") == 0)
+        {
+            extended_keys = 1;
+        }
+    }
 
+    /* 画面を消去し、キーボードの配置をテキストで表示する。 */
     system("CLS");
     display_keyboard(extended_keys);
+
+    /* /W指定時はWIN/APPキーを有効にする。 */
     if (extended_keys)
     {
+        /*
+         * EXE起動に使ったRETが離されるまで、拡張モードの設定を開始しない。
+         * RETの解放コードをコマンドの応答として読み捨てる競合を防ぐ。
+         */
+        read_key_states(states);
+        while (is_key_pressed(states, 0x1c))
+        {
+            read_key_states(states);
+        }
         set_extended_key_mode(0x03);
     }
+
     disable_keyboard_buffer_beep();
     hook_special_keys();
 
