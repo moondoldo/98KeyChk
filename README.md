@@ -18,10 +18,9 @@ WIN・APPキーモード
 プログラムの終了は[CTRL]+[C]で
 
 ## テスト済み環境
-- Neko Project 21/W<br>
-WIN・APP有りキーボードエミュレーション
-- PC-9821 Xa10<br>
-ノーマルキーボード
-- PC-9821 Ce<br>
-「クラシックPC救済委員会 USB KEYBOARD for PC-98x1」＋USBキーボード ※一部WIN・APP有り
+- Neko Project 21/W ＋ WIN・APP有りキーボードエミュレーション
+- PC-9821 Ce ＋ クラシックPC救済委員会 USB KEYBOARD for PC-98x1 ＋ USBキーボード ※一部WIN・APP有り
+- PC-9821 Xa10 ＋ ノーマルキーボード
+- PC-9821Xa9 ＋ WIN・APPキー付きキーボード
+
 
