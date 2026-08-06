@@ -1,7 +1,5 @@
-# このフォルダー(references)について
-references
-
-Codexに知見を与えるためのファイルです
+# references
+Codexに知見を与えるためのファイル群です
 
 だいたい再配布できないファイルなので、基本Gitには共有されていません
 
