@@ -3,11 +3,13 @@
 #include <string.h>
 #include <conio.h>
 #include <dos.h>
+#include <sys/timeb.h>
 
 #define KEY_STATE_GROUPS 16
 #define TEXT_ROW_BYTES 160
 #define REVERSE_ATTRIBUTE 0x04
 #define KEYBOARD_BUFFER_BEEP_DISABLE 0x20
+#define PROGRAM_TITLE "PC-98キーボードチェック 98KeyChk Ver0.1 by MoonDoldo"
 
 struct key_display {
     unsigned char code;
@@ -142,8 +144,47 @@ static void (far *old_copy_handler)();
 static void (far *old_stop_handler)();
 static unsigned char old_keyboard_buffer_beep_state;
 
+/* 起動中または終了中の注意画面を表示し、読めるように2秒待つ。 */
+static void show_wait_screen(void)
+{
+    struct timeb start_time;
+    struct timeb current_time;
+    long elapsed_milliseconds;
+
+    system("CLS");
+    puts(PROGRAM_TITLE);
+    puts("");
+    puts("キーボードには触れずお待ちください");
+
+    /* 待機前に、タイトルと注意文を確実に画面へ出力する。 */
+    fflush(stdout);
+
+    /* 待機を始めた時刻を、秒とミリ秒で取得する。 */
+    ftime(&start_time);
+    elapsed_milliseconds = 0;
+    while (elapsed_milliseconds < 2000L)
+    {
+        ftime(&current_time);
+
+        /* 秒の差をミリ秒へ換算し、1秒未満の差を加えて経過時間を求める。 */
+        elapsed_milliseconds =
+            (current_time.time - start_time.time) * 1000L
+            + (long)current_time.millitm - (long)start_time.millitm;
+    }
+}
+
+/* 終了後にタイトルだけを画面へ残す。 */
+static void show_title_screen(void)
+{
+    system("CLS");
+    puts(PROGRAM_TITLE);
+}
+
+/* 起動画面を消去し、キーボードの配置をテキストで表示する。 */
 static void display_keyboard(int extended_keys)
 {
+    system("CLS");
+
     puts("STOP COPY F1 F2 F3 F4 F5 F6 F7 F8 F9 F10  v1 v2 v3 v4 v5");
     puts(" ESC   1 2 3 4 5 6 7 8 9 0 - ^ \\ BS INS DEL      C H - /");
     puts(" TAB    Q W E R T Y U I O P @ [  RET  RUP RDOWN  7 8 9 *");
@@ -324,6 +365,17 @@ static int is_key_pressed(unsigned char states[], unsigned char code)
     return (states[code >> 3] & (1 << (code & 7))) != 0;
 }
 
+/* CTRLとCの両方が離れ、BIOSが解放を処理するまで待つ。 */
+static void wait_exit_keys_released(unsigned char states[])
+{
+    read_key_states(states);
+    while (is_key_pressed(states, 0x74)
+            || is_key_pressed(states, 0x2b))
+    {
+        read_key_states(states);
+    }
+}
+
 /* 指定キーの表示範囲について、テキストVRAMの反転属性を設定・解除する。 */
 static void set_key_reverse(struct key_display *key, int reverse)
 {
@@ -400,8 +452,7 @@ int main(int argc, char *argv[])
         }
     }
 
-    /* 画面を消去し、キーボードの配置をテキストで表示する。 */
-    system("CLS");
+    show_wait_screen();
     display_keyboard(extended_keys);
 
     /* /W指定時はWIN/APPキーを有効にする。 */
@@ -437,6 +488,14 @@ int main(int argc, char *argv[])
     /* 終了時に残っている、すべてのキーの反転表示を解除する。 */
     clear_key_display();
 
+    /* CTRL+Cが離れてから、DOSに中断されないよう入力を消去する。 */
+    wait_exit_keys_released(states);
+    clear_keyboard_buffer();
+    show_wait_screen();
+
+    /* 2秒の待機中にキーが押された場合も、離されるまで待つ。 */
+    wait_exit_keys_released(states);
+
     /* /W指定時はWIN/APPキーを無効にし、通常モードへ戻す。 */
     if (extended_keys)
     {
@@ -446,5 +505,6 @@ int main(int argc, char *argv[])
     clear_keyboard_buffer();
     restore_special_keys();
     restore_keyboard_buffer_beep();
+    show_title_screen();
     return 0;
 }
