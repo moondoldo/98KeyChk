@@ -144,25 +144,17 @@ static void (far *old_copy_handler)();
 static void (far *old_stop_handler)();
 static unsigned char old_keyboard_buffer_beep_state;
 
-/* 起動中または終了中の注意画面を表示し、読めるように2秒待つ。 */
-static void show_wait_screen(void)
+/* 指定された時間が経過するまで、ミリ秒単位で待つ。 */
+static void wait_milliseconds(long milliseconds)
 {
     struct timeb start_time;
     struct timeb current_time;
     long elapsed_milliseconds;
 
-    system("CLS");
-    puts(PROGRAM_TITLE);
-    puts("");
-    puts("キーボードには触れずお待ちください");
-
-    /* 待機前に、タイトルと注意文を確実に画面へ出力する。 */
-    fflush(stdout);
-
     /* 待機を始めた時刻を、秒とミリ秒で取得する。 */
     ftime(&start_time);
     elapsed_milliseconds = 0;
-    while (elapsed_milliseconds < 2000L)
+    while (elapsed_milliseconds < milliseconds)
     {
         ftime(&current_time);
 
@@ -171,6 +163,20 @@ static void show_wait_screen(void)
             (current_time.time - start_time.time) * 1000L
             + (long)current_time.millitm - (long)start_time.millitm;
     }
+}
+
+/* 起動中または終了中の注意画面を表示し、読めるように2秒待つ。 */
+static void show_wait_screen(void)
+{
+    system("CLS");
+    puts(PROGRAM_TITLE);
+    puts("");
+    puts("キーボードには触れずお待ちください");
+
+    /* 待機前に、タイトルと注意文を確実に画面へ出力する。 */
+    fflush(stdout);
+
+    wait_milliseconds(2000L);
 }
 
 /* 終了後にタイトルだけを画面へ残す。 */
@@ -365,6 +371,29 @@ static int is_key_pressed(unsigned char states[], unsigned char code)
     return (states[code >> 3] & (1 << (code & 7))) != 0;
 }
 
+/*
+ * RETの解放状態を200ミリ秒後にもう一度確認する。
+ * キーリピート中に一瞬だけ解放状態となった場合は、解放待ちをやり直す。
+ */
+static void wait_return_key_released(unsigned char states[])
+{
+    for (;;)
+    {
+        read_key_states(states);
+        while (is_key_pressed(states, 0x1c))
+        {
+            read_key_states(states);
+        }
+
+        wait_milliseconds(200L);
+        read_key_states(states);
+        if (!is_key_pressed(states, 0x1c))
+        {
+            break;
+        }
+    }
+}
+
 /* CTRLとCの両方が離れ、BIOSが解放を処理するまで待つ。 */
 static void wait_exit_keys_released(unsigned char states[])
 {
@@ -453,7 +482,6 @@ int main(int argc, char *argv[])
     }
 
     show_wait_screen();
-    display_keyboard(extended_keys);
 
     /* /W指定時はWIN/APPキーを有効にする。 */
     if (extended_keys)
@@ -462,16 +490,13 @@ int main(int argc, char *argv[])
          * EXE起動に使ったRETが離されるまで、拡張モードの設定を開始しない。
          * RETの解放コードをコマンドの応答として読み捨てる競合を防ぐ。
          */
-        read_key_states(states);
-        while (is_key_pressed(states, 0x1c))
-        {
-            read_key_states(states);
-        }
+        wait_return_key_released(states);
         set_extended_key_mode(0x03);
     }
 
     disable_keyboard_buffer_beep();
     hook_special_keys();
+    display_keyboard(extended_keys);
 
     /* CTRL+Cが押されるまで、キー状態の取得と表示の更新を繰り返す。 */
     for (;;)
