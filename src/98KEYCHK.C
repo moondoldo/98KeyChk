@@ -10,7 +10,7 @@
 #define REVERSE_ATTRIBUTE 0x04
 #define KEYBOARD_BUFFER_BEEP_DISABLE 0x20
 #define PROGRAM_TITLE "【PC-98キーボードチェック】98KeyChk "
-#define VER_TITLE "Ver0.2 "
+#define VER_TITLE "Ver1.0 "
 #define NAME_TITLE "by MoonDoldo "
 
 struct key_display {
