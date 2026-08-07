@@ -9,7 +9,9 @@
 #define TEXT_ROW_BYTES 160
 #define REVERSE_ATTRIBUTE 0x04
 #define KEYBOARD_BUFFER_BEEP_DISABLE 0x20
-#define PROGRAM_TITLE "PC-98キーボードチェック 98KeyChk Ver0.1 by MoonDoldo"
+#define PROGRAM_TITLE "【PC-98キーボードチェック】98KeyChk "
+#define VER_TITLE "Ver0.2 "
+#define NAME_TITLE "by MoonDoldo "
 
 struct key_display {
     unsigned char code;
@@ -165,25 +167,14 @@ static void wait_milliseconds(long milliseconds)
     }
 }
 
-/* 起動中または終了中の注意画面を表示し、読めるように2秒待つ。 */
-static void show_wait_screen(void)
-{
-    system("CLS");
-    puts(PROGRAM_TITLE);
-    puts("");
-    puts("キーボードには触れずお待ちください");
-
-    /* 待機前に、タイトルと注意文を確実に画面へ出力する。 */
-    fflush(stdout);
-
-    wait_milliseconds(2000L);
-}
-
-/* 終了後にタイトルだけを画面へ残す。 */
+/* 画面を消去し、タイトルを表示する。 */
 static void show_title_screen(void)
 {
     system("CLS");
-    puts(PROGRAM_TITLE);
+    puts(PROGRAM_TITLE VER_TITLE NAME_TITLE);
+
+    /* 後続処理を待つ前に、タイトルを確実に画面へ出力する。 */
+    fflush(stdout);
 }
 
 /* 起動画面を消去し、キーボードの配置をテキストで表示する。 */
@@ -214,6 +205,7 @@ static void display_keyboard(int extended_keys)
     {
         puts("Normal Mode (WIN/APP Mode は /W 付き起動) [終了:CTRL+C]");
     }
+    puts(PROGRAM_TITLE VER_TITLE NAME_TITLE);
 }
 
 /*
@@ -481,16 +473,17 @@ int main(int argc, char *argv[])
         }
     }
 
-    show_wait_screen();
+    show_title_screen();
+
+    /*
+     * EXE起動に使ったRETが安定して離されるまで待つ。
+     * /W指定時は、RETの解放コードをコマンドの応答として読み捨てる競合も防ぐ。
+     */
+    wait_return_key_released(states);
 
     /* /W指定時はWIN/APPキーを有効にする。 */
     if (extended_keys)
     {
-        /*
-         * EXE起動に使ったRETが離されるまで、拡張モードの設定を開始しない。
-         * RETの解放コードをコマンドの応答として読み捨てる競合を防ぐ。
-         */
-        wait_return_key_released(states);
         set_extended_key_mode(0x03);
     }
 
@@ -513,12 +506,7 @@ int main(int argc, char *argv[])
     /* 終了時に残っている、すべてのキーの反転表示を解除する。 */
     clear_key_display();
 
-    /* CTRL+Cが離れてから、DOSに中断されないよう入力を消去する。 */
-    wait_exit_keys_released(states);
-    clear_keyboard_buffer();
-    show_wait_screen();
-
-    /* 2秒の待機中にキーが押された場合も、離されるまで待つ。 */
+    /* CTRL+Cが離れてから、終了処理を続ける。 */
     wait_exit_keys_released(states);
 
     /* /W指定時はWIN/APPキーを無効にし、通常モードへ戻す。 */
