@@ -23,4 +23,19 @@ WIN・APPキーモード
 - PC-9821 Xa10 ＋ ノーマルキーボード
 - PC-9821Xa9 ＋ WIN・APPキー付きキーボード
 
+## Gitリポジトリフォルダー構成
+
+```
+/98KeyChk
+├─dist
+├─docs
+│  ├─archive
+│  └─handoff
+├─PC98DEV
+├─references
+├─src
+└─tools
+    ├─readme.assets
+    └─scripts
+```
 
