@@ -35,7 +35,6 @@ WIN・APPキーモード
 ├─references
 ├─src
 └─tools
-    ├─readme.assets
     └─scripts
 ```
 
