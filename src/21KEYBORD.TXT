@@ -1,3 +1,5 @@
+キーボード表示配置(WIN/APP Mode)
+
 STOP COPY F1 F2 F3 F4 F5 F6 F7 F8 F9 F10  v1 v2 v3 v4 v5
  ESC   1 2 3 4 5 6 7 8 9 0 - ^ \ BS INS DEL      C H - /
  TAB    Q W E R T Y U I O P @ [  RET  RUP RDOWN  7 8 9 *
