@@ -36,9 +36,17 @@ APPキーを判定します<br>
 WINキーを右WINキーとして判定します(108キーボードではWINキーは左側に1つしか付いていません)<br>
 APPキーを判定します
 
+- クラシックPC救済委員会 USB KEYBOARD for PC-98x1 ＋ 109キーボード(JIS配列)<br>
+(Normal Mode でも WIN・APP Mode でも、以下の状態となります)<br>
+左SHIFTキーと右SHIFTキーを同一のキーとして判定します(どちらも左SHIFTキーとして扱います)<br>
+左WINキー・右WINキーを右WINキーとして判定します(109キーボードではWINキーが左と右に付いています)<br>
+APPキーを判定します<br>
+
+
 ## テスト済み環境
 - Neko Project 21/W ＋ WIN・APPキー付きキーボード
 - PC-9821 Ce ＋ クラシックPC救済委員会 USB KEYBOARD for PC-98x1 ＋ 108キーボード(JIS配列)
+- PC-9821 Ce ＋ クラシックPC救済委員会 USB KEYBOARD for PC-98x1 ＋ 109キーボード(JIS配列)
 - PC-9821 Ce ＋ ノーマルキーボード
 - PC-9821 Ce ＋ WIN・APPキー付きキーボード
 - PC-9821 Xa10 ＋ ノーマルキーボード ※SimK様
