@@ -44,7 +44,7 @@ APPキーを判定します<br>
 
 
 ## テスト済み環境
-- Neko Project 21/W ＋ WIN・APPキー付きキーボード
+- Windows11 + Neko Project 21/W ＋ 108キーボード(JIS配列)
 - PC-9821 Ce ＋ クラシックPC救済委員会 USB KEYBOARD for PC-98x1 ＋ 108キーボード(JIS配列)
 - PC-9821 Ce ＋ クラシックPC救済委員会 USB KEYBOARD for PC-98x1 ＋ 109キーボード(JIS配列)
 - PC-9821 Ce ＋ ノーマルキーボード
